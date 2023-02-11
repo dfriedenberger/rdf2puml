@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+from rdf2puml import __version__
+from rdf2puml.rdf2puml import rdf2puml, statemachines2puml, packages2puml
+from rdflib import Graph
+import argparse
+import os
+
+def dir_path(path):
+    if os.path.isdir(path):
+        return path
+    else:
+        raise argparse.ArgumentTypeError(f"{path} is not a valid path")
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Converting rdf model to plantuml.")
+
+    parser.add_argument("--version", action='version', version=f'%(prog)s (version {__version__})')
+    parser.add_argument("--model", required=True, metavar="INPUT", help="model")
+    parser.add_argument("--path", required=True, metavar="OUTPUT", type=dir_path, help="output directory")
+    args = parser.parse_args()
+    return args.model , args.path
+
+
+
+model, path = parse_args()
+
+
+graph = Graph()
+graph.parse(model)
+
+puml = rdf2puml(graph)
+txt = '\n'.join(puml.puml)
+
+basename = os.path.splitext(model)[0]
+output_file = os.path.join(path,basename+".puml")
+with open(output_file, 'w') as f:
+    f.write(txt)
+
+for key,puml_sm in statemachines2puml(graph).items():
+    txt_sm = '\n'.join(puml_sm.puml)
+    output_file_sm = os.path.join(path,basename+"-sm-"+key.lower()+".puml")
+    with open(output_file_sm, 'w') as f:
+        f.write(txt_sm)
+
+puml_packages = packages2puml(graph)
+txt_packages = '\n'.join(puml_packages.puml)
+output_file_packages = os.path.join(path,basename+"-packages.puml")
+with open(output_file_packages, 'w') as f:
+    f.write(txt_packages)
+
+
