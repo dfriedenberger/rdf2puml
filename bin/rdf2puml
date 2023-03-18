@@ -33,7 +33,7 @@ txt = '\n'.join(puml.puml)
 
 basename = os.path.splitext(model)[0]
 output_file = os.path.join(path,basename+".puml")
-with open(output_file, 'w') as f:
+with open(output_file, 'w', encoding="UTF-8") as f:
     f.write(txt)
 
 for key,puml_sm in statemachines2puml(graph).items():

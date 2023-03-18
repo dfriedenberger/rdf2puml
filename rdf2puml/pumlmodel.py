@@ -2,7 +2,7 @@ from .group import Group
 
 def create_unique_id(o):
     s = str(o).split('#')[-1]
-    return s.replace("/","_").replace("-","_").replace(":","_").replace("[","_").replace("]","_").replace(" ","_")
+    return s.replace("/","_").replace("-","_").replace(":","_").replace("[","_").replace("]","_").replace(" ","_").replace("(","_").replace(")","_")
 
 
 
