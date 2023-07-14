@@ -1,4 +1,4 @@
-from rdflib import URIRef, Graph
+from rdflib import URIRef, Graph, RDFS
 
 from .pumlmodel import PumlModel
 from obse.sparql_queries import SparQLWrapper
@@ -6,7 +6,7 @@ from obse.namespace import MBA
 from typing import List
 
 def get_name(wrapper,instance):
-    names = wrapper.get_object_properties(instance,MBA.name)
+    names = wrapper.get_object_properties(instance,RDFS.label)
     return "/".join(names)
 
 def get_type(wrapper,instance):

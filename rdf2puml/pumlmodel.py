@@ -8,7 +8,7 @@ def create_unique_id(o):
 
 class PumlModel:
 
-    def __init__(self,title):
+    def __init__(self,title,layout="LAYOUT_TOP_DOWN"):
         self.puml = []
         self.nodes = Group(None,None)
         self.components = Group(None,None)
@@ -20,7 +20,7 @@ class PumlModel:
         self.puml.append("!include c4/C4.puml")
         self.puml.append("!include nano/nanoservices.puml")
         self.puml.append(f"title {title}")
-        self.puml.append("LAYOUT_TOP_DOWN")
+        self.puml.append(layout)
 
         self.cache = set()
 
@@ -43,6 +43,19 @@ class PumlModel:
         id1 = create_unique_id(node1)
         id2 = create_unique_id(node2)
         puml_rel = f'Rel_D({id1}, {id2},"{name}")'
+        self.relations.append(puml_rel)
+
+
+    def create_relation_directed(self,node1,node2,name = " "):
+        id1 = create_unique_id(node1)
+        id2 = create_unique_id(node2)
+        puml_rel = f'{id1} --> {id2}: "{name}"'
+        self.relations.append(puml_rel)
+
+    def create_relation_undirected(self,node1,node2,name = " "):
+        id1 = create_unique_id(node1)
+        id2 = create_unique_id(node2)
+        puml_rel = f'{id1} -- {id2}: "{name}"'
         self.relations.append(puml_rel)
 
     # state machines
@@ -69,20 +82,21 @@ class PumlModel:
         self.transitions.append(puml)
    
 
-    def create_package(self,package,packageName): #Todo Workaround
-        id = create_unique_id(package)
-        self.components.groups[id] = Group(id,packageName)
+    def create_package(self,package,package_name): #TODO Workaround
+        package_id = create_unique_id(package)
+        self.components.groups[package_id] = Group(package_id,package_name)
+        return package_id
 
 
         
     def create_component(self,component,name,package,pattern):
-        packageid = create_unique_id(package)
-        id = create_unique_id(component)
+        package_id = create_unique_id(package)
+        component_id = create_unique_id(component)
 
-        component_obj = f'\tcomponent {id} <<{pattern}>> [{name}\n'
+        component_obj = f'\tcomponent {component_id} <<{pattern}>> [{name}\n'
         # component_obj += f'\t\t  \n' Add Multiline description
         component_obj += '\t]'
-        self.components.append([packageid],component_obj)
+        self.components.append([package_id],component_obj)
 
     def create_component_use(self,component,used_component):
         id = create_unique_id(component)
