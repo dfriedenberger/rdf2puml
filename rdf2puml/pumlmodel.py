@@ -1,5 +1,5 @@
 from .group import Group
-
+from .constants import DIRECTION, POSITION
 
 def create_unique_id(o):
     s = str(o).split('#')[-1]
@@ -16,6 +16,10 @@ class PumlModel:
         self.relations = []
         self.component_uses = []
         self.transitions = []
+        self.datastructs = []
+        self.note_index = 0
+        self.notes = []
+
         self.puml.append("@startuml")
         self.puml.append("!include c4/C4.puml")
         self.puml.append("!include nano/nanoservices.puml")
@@ -45,7 +49,7 @@ class PumlModel:
         puml_rel = f'Rel_D({id1}, {id2},"{name}")'
         self.relations.append(puml_rel)
 
-    def create_relation_directed(self, node1, node2, name=" ", direction=""):
+    def create_relation_directed(self, node1, node2, name=" ", direction=DIRECTION.NONE):
         id1 = create_unique_id(node1)
         id2 = create_unique_id(node2)
         puml_rel = f'{id1} -{direction}-> {id2}: "{name}"'
@@ -106,15 +110,47 @@ class PumlModel:
         puml_use = f'[{component_id}] --> [{used_id}] : use'
         self.component_uses.append(puml_use)
 
+    # data structs
+    def create_datastruct(self,datastruct, name, properties):
+
+        datastruct_id = create_unique_id(datastruct)
+        datastruct_puml = f'map "{name}" as {datastruct_id} {{\n'
+        for (property_type, property_name, property_datastruct) in properties:
+            if property_type == "basic":
+                datastruct_puml += f'\t{property_name} => {property_datastruct.split("#")[-1]}\n'
+            elif property_type == "array":
+                datastruct_puml += f'\t{property_name}[] *-> {create_unique_id(property_datastruct)}\n'
+            else:
+                raise ValueError(f"{property_type} not implemented")
+        datastruct_puml += "}\n"
+        self.datastructs.append(datastruct_puml)
+
+    # notes
+    def create_note(self, obj, note, position=POSITION.NONE):
+
+        obj_id = create_unique_id(obj)
+
+        if position:
+            puml = f'note {position} of {obj_id}: "{note}\n'
+        else:
+            self.note_index += 1
+            puml = f'note "{note}" as N{self.note_index}\n'
+            puml += f'{obj_id} .. N{self.note_index}\n'
+
+        self.notes.append(puml)
+
     def finish(self):
 
         self.puml.extend(self.nodes.to_puml_package())
         self.puml.extend(self.components.to_puml_package())
         self.puml.extend(self.states.to_puml_package())
+        self.puml.extend(self.datastructs)
 
         self.puml.extend(self.relations)
         self.puml.extend(self.component_uses)
         self.puml.extend(self.transitions)
+
+        self.puml.extend(self.notes)
 
         self.puml.append("@enduml")
         return self.puml
